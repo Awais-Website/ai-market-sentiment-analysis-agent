@@ -32,7 +32,7 @@ with st.form("sentiment_form"):
 
 if submitted:
     # Placeholder logic for demonstration. Replace with real LangChain and SERP API integration.
-    st.subheader("Market Sentiment Report")
+    st.subheader("Market Sentiment Report Awais")
     st.write("Neutral: 80.00%")
     st.write("Positive: 20.00%")
     st.write("**Market sentiment is neutral. Mixed signals observed.**")
