@@ -1,5 +1,6 @@
 streamlit
 langchain
 python-dotenv
-serpapi
+google-search-results
 openai
+pandas
