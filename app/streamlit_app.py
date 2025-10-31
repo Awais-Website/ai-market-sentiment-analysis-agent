@@ -97,22 +97,18 @@ def generate_market_summary(sentiment_results):
             summary += f"{sentiment}: {percentage:.2f}%\n"
     
     # Generate conclusion based on sentiment distribution
-    # Determine overall sentiment based on which sentiment has the highest percentage
+    # Ignore neutral - only compare positive vs negative
     negative_pct = sentiment_counts.get("Negative", 0)
     positive_pct = sentiment_counts.get("Positive", 0)
-    neutral_pct = sentiment_counts.get("Neutral", 0)
     
-    # Determine overall sentiment: if positive or negative is highest (even if tied), use that
-    # Only default to neutral if neutral is clearly the highest and positive/negative are lower
-    if positive_pct >= negative_pct and positive_pct >= neutral_pct and positive_pct > 0:
-        # Positive is highest or tied for highest
-        conclusion = f"\n✅ **Overall Sentiment: POSITIVE** - Market sentiment is positive ({positive_pct:.1f}%). Growth opportunities ahead."
-    elif negative_pct > positive_pct and negative_pct > neutral_pct:
-        # Negative is clearly highest
-        conclusion = f"\n⚠️ **Overall Sentiment: NEGATIVE** - Market sentiment is negative ({negative_pct:.1f}%). High risk detected. Caution advised."
+    # Compare only positive vs negative (ignore neutral)
+    if positive_pct > negative_pct:
+        conclusion = f"\n✅ **Overall Sentiment: POSITIVE** - Market sentiment is positive ({positive_pct:.1f}% positive vs {negative_pct:.1f}% negative). Growth opportunities ahead."
+    elif negative_pct > positive_pct:
+        conclusion = f"\n⚠️ **Overall Sentiment: NEGATIVE** - Market sentiment is negative ({negative_pct:.1f}% negative vs {positive_pct:.1f}% positive). High risk detected. Caution advised."
     else:
-        # Neutral is highest, or all are equal
-        conclusion = f"\n🔸 **Overall Sentiment: NEUTRAL** - Market sentiment is neutral ({neutral_pct:.1f}%). Mixed signals observed."
+        # Positive and negative are equal
+        conclusion = f"\n🔸 **Overall Sentiment: MIXED** - Mixed signals observed ({positive_pct:.1f}% positive, {negative_pct:.1f}% negative). Proceed with caution."
     
     summary += conclusion
     
