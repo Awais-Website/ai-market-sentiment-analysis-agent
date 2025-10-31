@@ -4,6 +4,8 @@ import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 from serpapi.google_search import GoogleSearch
+import feedparser
+import yfinance as yfinance
 
 # Load environment variables from .env if present
 load_dotenv()
@@ -33,6 +35,33 @@ st.markdown(
     "using SerpAPI to fetch financial news and OpenAI GPT-4 to analyze sentiment.\n\n"
     "Provide your API keys via a `.env` file for live analysis."
 )
+
+# Forbes RSS helper
+def fetch_forbes_news(keyword: str):
+    """Fetch and filter Forbes real-time RSS feed by keyword. Returns top 5 entries."""
+    try:
+        feed = feedparser.parse("https://www.forbes.com/real-time/feed/")
+        if not feed or not getattr(feed, "entries", None):
+            return []
+        keyword_l = (keyword or "").lower()
+        filtered = [entry for entry in feed.entries if keyword_l in getattr(entry, "title", "").lower()]
+        return filtered[:5]
+    except Exception as e:
+        st.error(f"Error fetching Forbes RSS: {str(e)}")
+        return []
+
+# Yahoo Finance helper
+def fetch_stock_data(symbol: str):
+    """Fetch last 5 days of OHLCV for the provided ticker symbol using yfinance."""
+    try:
+        if not symbol:
+            return None
+        data = yfinance.Ticker(symbol)
+        hist = data.history(period="5d").tail(5)
+        return hist
+    except Exception as e:
+        st.error(f"Error fetching stock data: {str(e)}")
+        return None
 
 # Helper function to fetch news from SerpAPI
 def fetch_financial_news(industry, location, scenario, api_key):
@@ -121,6 +150,7 @@ with st.form("sentiment_form"):
         "Step 3 — Market event or question (e.g., 'Should I buy Apple stock?')",
         "Should I buy Apple stock?"
     )
+    stock_symbol = st.text_input("Optional — Stock symbol for Yahoo Finance (e.g., AAPL, MSFT):", "AAPL")
     submitted = st.form_submit_button("Run analysis")
 
 if submitted:
@@ -181,6 +211,36 @@ if submitted:
         st.write(f"{idx}. {sentiment_emoji} **{sentiment}**: {headline}")
 
     st.divider()
-    st.caption("✅ Analysis completed using real-time API data from SerpAPI and OpenAI GPT-4.")
+    # Forbes RSS section
+    st.subheader("Forbes Real-Time News (Filtered)")
+    forbes_items = fetch_forbes_news(industry)
+    if not forbes_items:
+        st.write("No Forbes articles matched your industry filter.")
+    else:
+        for i, entry in enumerate(forbes_items, start=1):
+            title = getattr(entry, "title", "Untitled")
+            link = getattr(entry, "link", None)
+            published = getattr(entry, "published", "")
+            if link:
+                st.markdown(f"{i}. [{title}]({link})  ")
+            else:
+                st.write(f"{i}. {title}")
+            if published:
+                st.caption(published)
+
+    st.divider()
+    # Yahoo Finance section
+    st.subheader("Latest Stock Data (Yahoo Finance)")
+    stock_df = fetch_stock_data(stock_symbol)
+    if stock_df is None or stock_df.empty:
+        st.write("No stock data available. Please check the symbol.")
+    else:
+        st.dataframe(stock_df)
+        try:
+            st.line_chart(stock_df["Close"], use_container_width=True)
+        except Exception:
+            pass
+
+    st.caption("✅ Analysis completed using real-time API data from SerpAPI, OpenAI GPT-4, Forbes RSS, and Yahoo Finance.")
 else:
     st.info("Fill in the fields above and click **Run analysis** to see the sentiment report.")
