@@ -8,8 +8,17 @@ from serpapi.google_search import GoogleSearch
 # Load environment variables from .env if present
 load_dotenv()
 
-SERPAPI_KEY = os.getenv("SERPAPI_API_KEY", "")
-OPENAI_KEY = os.getenv("OPENAI_API_KEY", "")
+if "SERPAPI_API_KEY" in st.secrets:
+    SERPAPI_KEY = st.secrets["SERPAPI_API_KEY"]
+    OPENAI_KEY = st.secrets["OPENAI_API_KEY"]
+else:
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    SERPAPI_KEY = os.getenv("SERPAPI_API_KEY", "")
+    OPENAI_KEY = os.getenv("OPENAI_API_KEY", "")
+
+
 
 st.set_page_config(
     page_title="AI-Powered Market Sentiment Analysis Agent",
