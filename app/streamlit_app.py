@@ -33,7 +33,7 @@ st.caption("(AI, Python, LangChain, SERP API)")
 st.markdown(
     "This app collects context (industry, location, and market event) and performs **real-time market-sentiment analysis** "
     "using SerpAPI to fetch financial news and OpenAI GPT-4 to analyze sentiment.\n\n"
-    "Provide your API keys via a `.env` file for live analysis."
+#    "Provide your API keys via a `.env` file for live analysis."
 )
 
 # Forbes RSS helper
